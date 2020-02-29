@@ -2,13 +2,13 @@
 
 class String
   def black;          "\e[30m#{self}\e[0m" end
-  def red;            "\e[31m#{self}" end
-  def green;          "\e[32m#{self}" end
-  def brown;          "\e[33m#{self}" end
-  def blue;           "\e[34m#{self}" end
-  def magenta;        "\e[35m#{self}" end
-  def cyan;           "\e[36m#{self}" end
-  def gray;           "\e[37m#{self}" end
+  def red;            "\e[31m#{self}\e[0m" end
+  def green;          "\e[32m#{self}\e[0m" end
+  def brown;          "\e[33m#{self}\e[0m" end
+  def blue;           "\e[34m#{self}\e[0m" end
+  def magenta;        "\e[35m#{self}\e[0m" end
+  def cyan;           "\e[36m#{self}\e[0m" end
+  def gray;           "\e[37m#{self}\e[0m" end
   
   def bg_black;       "\e[40m#{self}" end
   def bg_red;         "\e[41m#{self}" end
@@ -85,9 +85,10 @@ class Game
   end
 
   def display_board
-    puts "       "
-    puts "       " + "   a   " + "   b   " + "   c   " + "   d   " + "   e   " + "   f   " + "   g   " + "   h   "
-    puts "       "
+    puts "".bg_black
+    puts "       ".bg_black
+    puts "       " + "   a   " + "   b   " + "   c   " + "   d   " + "   e   " + "   f   " + "   g   " + "   h   ".bg_black
+    puts "       ".bg_black
     puts "       " + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + " ".bg_black
     puts "   8   " + "   #{@board.ret_board_hash_val([1,8])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([2,8])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([3,8])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([4,8])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([5,8])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([6,8])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([7,8])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([8,8])}".bg_gray + "   ".bg_gray + "   8".bg_black
     puts "       " + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + " ".bg_black
