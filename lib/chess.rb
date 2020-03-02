@@ -1,36 +1,19 @@
 #!/usr/bin/ruby
-
-class String
-  def black;          "\e[30m#{self}\e[0m" end
-  def red;            "\e[31m#{self}\e[0m" end
-  def green;          "\e[32m#{self}\e[0m" end
-  def brown;          "\e[33m#{self}\e[0m" end
-  def blue;           "\e[34m#{self}\e[0m" end
-  def magenta;        "\e[35m#{self}\e[0m" end
-  def cyan;           "\e[36m#{self}\e[0m" end
-  def gray;           "\e[37m#{self}\e[0m" end
-  
-  def bg_black;       "\e[40m#{self}" end
-  def bg_red;         "\e[41m#{self}" end
-  def bg_green;       "\e[42m#{self}" end
-  def bg_brown;       "\e[43m#{self}" end
-  def bg_blue;        "\e[44m#{self}" end
-  def bg_magenta;     "\e[45m#{self}" end
-  def bg_cyan;        "\e[46m#{self}" end
-  def bg_gray;        "\e[47m#{self}" end
-  
-  def bold;           "\e[1m#{self}\e[22m" end
-  def italic;         "\e[3m#{self}\e[23m" end
-  def underline;      "\e[4m#{self}\e[24m" end
-  def blink;          "\e[5m#{self}\e[25m" end
-  def reverse_color;  "\e[7m#{self}\e[27m" end
-end
+require_relative './string.rb'
+require_relative './board.rb'
+require_relative './pieces.rb'
 
 class Game
-  attr_accessor :chess_pieces
+  attr_accessor :chess_pieces, :white_pawn1, :white_pawn2, :white_pawn3
   
   def initialize
+    create_pieces
     @board = Board.new
+    @game_over = false
+    turn_sequence
+  end
+
+  def create_pieces
     @white_pawn1 = Pawn.new([1,2], "white")
     @white_pawn2 = Pawn.new([2,2], "white")
     @white_pawn3 = Pawn.new([3,2], "white")
@@ -63,198 +46,77 @@ class Game
     @black_bishop2 = Bishop.new([6,8], "black")
     @black_queen = Queen.new([4,8], "black")
     @black_king = King.new([5,8], "black")
-    @pieces = [@white_pawn1, @white_pawn2, @white_pawn3, 
-              @white_pawn4, @white_pawn5, @white_pawn6, 
-              @white_pawn7, @white_pawn8, @white_bishop1,
-              @white_bishop2, @white_king, @white_knight1,
-              @white_knight2, @white_queen, @white_rook1,
-              @white_rook2, @black_bishop1, @black_bishop2, 
-              @black_king, @black_knight1, @black_knight2, 
-              @black_pawn1, @black_pawn2, @black_pawn3, 
-              @black_pawn4, @black_pawn5, @black_pawn6, 
-              @black_pawn7, @black_pawn8, @black_queen, 
-              @black_rook1, @black_rook2]
+  end
+  
+  def turn_sequence
+    i = 1
+    while @game_over == false
+      if i.even?
+        turn('black')
+      else
+        turn('white')
+      end
+      i += 1
+    end
+  end
+  
+  def turn(color)
+    valid_answer_given = false
+    while valid_answer_given ==false
+      puts "#{color.upcase}'s turn. Enter the grid coordinates of the piece you want to move: "
+      cur_coord = gets.chomp.downcase
+      cur_coord = translate(cur_coord)
+      if validate_cur_coord(color, cur_coord) == true
+        valid_answer_given = true
+      else
+        puts "Invalid selection, try again..."
+        valid_answer_given = false
+      end
+    end
+    puts "#{color.upcase} - Enter the desired destination coordinates: "
+    new_coord = gets.chomp.downcase
+    new_coord = translate(new_coord)
+    move_piece(cur_coord, new_coord)
+  end
+  
+  def translate(cur_coord)
+    numeric_coord = []
+    case cur_coord[0]
+    when "a"
+      numeric_coord.push(1)
+    when "b"
+      numeric_coord.push(2)
+    when "c"
+      numeric_coord.push(3)
+    when "d"
+      numeric_coord.push(4)
+    when "e"
+      numeric_coord.push(5)
+    when "f"
+      numeric_coord.push(6)
+    when "g"
+      numeric_coord.push(7)
+    when "h"
+      numeric_coord.push(8)
+    end
+    numeric_coord.push(cur_coord[1].to_i)
+    return numeric_coord
+  end
+  
+  def validate_cur_coord(color, cur_coord)
+    if @board.ret_board_hash_color(cur_coord) == color
+      return true
+    else
+      return false
+    end
+  end
+  
+  def move_piece(cur_coord, new_coord)
+    piece = @board.ret_board_hash_piece(cur_coord)
+    piece.coord = new_coord
     update_board
   end
-
-  def update_board
-    @pieces.each do |piece|
-      @board.assign_coord(piece.coord, piece)
-    end
-    display_board
-  end
-
-  def display_board
-    puts "".bg_black
-    puts "       ".bg_black
-    puts "       " + "   a   " + "   b   " + "   c   " + "   d   " + "   e   " + "   f   " + "   g   " + "   h   ".bg_black
-    puts "       ".bg_black
-    puts "       " + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + " ".bg_black
-    puts "   8   " + "   #{@board.ret_board_hash_val([1,8])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([2,8])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([3,8])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([4,8])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([5,8])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([6,8])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([7,8])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([8,8])}".bg_gray + "   ".bg_gray + "   8".bg_black
-    puts "       " + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + " ".bg_black
-    puts "       " + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + " ".bg_black
-    puts "   7   " + "   #{@board.ret_board_hash_val([1,7])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([2,7])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([3,7])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([4,7])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([5,7])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([6,7])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([7,7])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([8,7])}".bg_cyan + "   ".bg_cyan + "   7".bg_black
-    puts "       " + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + " ".bg_black
-    puts "       " + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + " ".bg_black
-    puts "   6   " + "   #{@board.ret_board_hash_val([1,6])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([2,6])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([3,6])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([4,6])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([5,6])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([6,6])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([7,6])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([8,6])}".bg_gray + "   ".bg_gray + "   6".bg_black
-    puts "       " + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + " ".bg_black
-    puts "       " + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + " ".bg_black
-    puts "   5   " + "   #{@board.ret_board_hash_val([1,5])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([2,5])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([3,5])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([4,5])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([5,5])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([6,5])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([7,5])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([8,5])}".bg_cyan + "   ".bg_cyan + "   5".bg_black
-    puts "       " + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + " ".bg_black
-    puts "       " + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + " ".bg_black
-    puts "   4   " + "   #{@board.ret_board_hash_val([1,4])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([2,4])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([3,4])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([4,4])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([5,4])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([6,4])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([7,4])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([8,4])}".bg_gray + "   ".bg_gray + "   4".bg_black
-    puts "       " + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + " ".bg_black
-    puts "       " + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + " ".bg_black
-    puts "   3   " + "   #{@board.ret_board_hash_val([1,3])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([2,3])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([3,3])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([4,3])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([5,3])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([6,3])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([7,3])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([8,3])}".bg_cyan + "   ".bg_cyan + "   3".bg_black
-    puts "       " + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + " ".bg_black
-    puts "       " + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + " ".bg_black
-    puts "   2   " + "   #{@board.ret_board_hash_val([1,2])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([2,2])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([3,2])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([4,2])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([5,2])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([6,2])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([7,2])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([8,2])}".bg_gray + "   ".bg_gray + "   2".bg_black
-    puts "       " + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + " ".bg_black
-    puts "       " + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + " ".bg_black
-    puts "   1   " + "   #{@board.ret_board_hash_val([1,1])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([2,1])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([3,1])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([4,1])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([5,1])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([6,1])}".bg_cyan + "   ".bg_cyan + "   #{@board.ret_board_hash_val([7,1])}".bg_gray + "   ".bg_gray + "   #{@board.ret_board_hash_val([8,1])}".bg_cyan + "   ".bg_cyan + "   1".bg_black
-    puts "       " + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + "       ".bg_gray + "       ".bg_cyan + " ".bg_black
-    puts "       "
-    puts "       " + "   a   " + "   b   " + "   c   " + "   d   " + "   e   " + "   f   " + "   g   " + "   h   "
-    puts "       "
-  end
-
+    
 end
-
-class Board
-  attr_accessor :board_hash
-  
-  def initialize
-    @board_coord = []
-    x = 1
-    while x < 9
-      y = 1
-      while y < 9
-        @board_coord.push([x,y])
-        y += 1
-      end
-      x += 1
-    end
-    board_hash
-  end
-  
-  def board_hash
-    @board_hash = Hash.new
-    @board_coord.each do |coord|
-      @board_hash[coord] = nil
-    end 
-  end
-
-  def assign_coord(coord, piece)
-    @board_hash[coord] = piece
-  end
-
-  def ret_board_hash_val(key)
-    if @board_hash[key].nil?
-      return " "
-    else
-      @board_hash[key].icon
-    end
-  end
-  
-end
-
-
-
-class King 
-  attr_accessor :coord, :color, :icon
-
-  def initialize(coord, color)
-    @coord = coord
-    @color = color
-    case
-    when @color == "black"
-      @icon = "♚".black
-    when @color == "white"
-      @icon = "♔".black
-    end
-  end
-
-end
-
-class Queen 
-  attr_accessor :coord, :color, :icon
-
-  def initialize(coord, color)
-    @coord = coord
-    @color = color
-    case
-    when @color == "black"
-      @icon = "♛".black
-    when @color == "white"
-      @icon = "♕".black
-    end
-  end
-
-end
-
-class Rook 
-  attr_accessor :coord, :color, :icon
-
-  def initialize(coord, color)
-    @coord = coord
-    @color = color
-    case
-    when @color == "black"
-      @icon = "♜".black
-    when @color == "white"
-      @icon = "♖".black
-    end
-  end
-
-end
-
-class Bishop 
-  attr_accessor :coord, :color, :icon
-
-  def initialize(coord, color)
-    @coord = coord
-    @color = color
-    case
-    when @color == "black"
-      @icon = "♝".black
-    when @color == "white"
-      @icon = "♗".black
-    end
-  end
-
-end
-
-class Knight
-  attr_accessor :coord, :color, :icon
-
-  def initialize(coord, color)
-    @coord = coord
-    @color = color
-    case
-    when @color == "black"
-      @icon = "♞".black
-    when @color == "white"
-      @icon = "♘".black
-    end
-  end
-
-end
-
-class Pawn 
-  attr_accessor :coord, :color, :icon
-
-  def initialize(coord, color)
-    @coord = coord
-    @color = color
-    case
-    when @color == "black"
-      @icon = "♟".black
-    when @color == "white"
-      @icon = "♙".black
-    end
-  end
-
-end
-
 
 Game.new
