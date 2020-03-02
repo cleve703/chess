@@ -1,7 +1,8 @@
 class Board
   attr_accessor :board_hash, :board_coord
   
-  def initialize
+  def initialize(pieces)
+    @pieces = pieces
     @board_coord = []
     x = 1
     while x < 9
@@ -13,6 +14,7 @@ class Board
       x += 1
     end
     board_hash
+    update_board
   end
   
   def board_hash
@@ -47,10 +49,49 @@ class Board
   end
   
   def update_board
+    board_hash
     @pieces.each do |piece|
-      @board.assign_coord(piece.coord, piece)
+      assign_coord(piece.coord, piece)
     end
-    @board.display_board
+    display_board
+  end
+
+  def translate(cur_coord)
+    numeric_coord = []
+    case cur_coord[0]
+    when "a"
+      numeric_coord.push(1)
+    when "b"
+      numeric_coord.push(2)
+    when "c"
+      numeric_coord.push(3)
+    when "d"
+      numeric_coord.push(4)
+    when "e"
+      numeric_coord.push(5)
+    when "f"
+      numeric_coord.push(6)
+    when "g"
+      numeric_coord.push(7)
+    when "h"
+      numeric_coord.push(8)
+    end
+    numeric_coord.push(cur_coord[1].to_i)
+    return numeric_coord
+  end
+  
+  def validate_cur_coord(color, cur_coord)
+    if ret_board_hash_color(cur_coord) == color
+      return true
+    else
+      return false
+    end
+  end
+  
+  def move_piece(cur_coord, new_coord)
+    piece = ret_board_hash_piece(cur_coord)
+    piece.coord = new_coord
+    update_board
   end
   
   def display_board
