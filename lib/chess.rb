@@ -69,20 +69,35 @@ class Game
   end
   
   def turn(color)
-    valid_answer_given = false
-    while valid_answer_given ==false
+    valid_initial_coord = false
+    while valid_initial_coord == false
       puts "#{color.upcase}'s turn. Enter the grid coordinates of the piece you want to move: "
       cur_coord = @board.translate(gets.chomp.downcase)
       if @board.validate_cur_coord(color, cur_coord) == true
-        valid_answer_given = true
+        valid_initial_coord = true
       else
         puts "Invalid selection, try again..."
-        valid_answer_given = false
+        valid_initial_coord = false
       end
     end
-    puts "#{color.upcase} - Enter the desired destination coordinates: "
-    new_coord = @board.translate(gets.chomp.downcase)
-    @board.move_piece(cur_coord, new_coord)
+    valid_dest_coord = false
+    while valid_dest_coord == false
+      puts "#{color.upcase} - Enter the desired destination coordinates, or type RESTART: "
+      new_coord = gets.chomp.downcase
+      if new_coord == "restart"
+        turn(color)
+        break
+      end
+      new_coord = @board.translate(new_coord)
+      if !@board.board_coord.include?(new_coord)
+        puts "Try again, dummy.  This time select grid coordinates that are on the board."
+        puts ""
+        valid_dest_coord = false
+      elsif @board.ret_board_hash_piece(cur_coord).valid_moves(new_coord) == true
+        @board.move_piece(cur_coord, new_coord)
+        valid_dest_coord = true
+      end
+    end
   end
     
 end

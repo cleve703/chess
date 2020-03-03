@@ -49,6 +49,17 @@ class Rook < Pieces
     end
   end
 
+  def valid_moves(new_coord)
+    case
+    when @coord[0] == new_coord[0]
+      return true
+    when @coord[1] == new_coord[1]
+      return true
+    else
+      return false
+    end
+  end
+
 end
 
 class Bishop < Pieces
@@ -89,11 +100,27 @@ class Pawn < Pieces
   def initialize(coord, color)
     @coord = coord
     @color = color
+    @first_move = true
     case
     when @color == "black"
       @icon = "♟".black
     when @color == "white"
       @icon = "♙".black
+    end
+  end
+
+  def valid_moves(new_coord)
+    case
+    when @first_move == true && color == "black" && @coord[0] == new_coord[0] && new_coord[1] == 5
+      return true
+    when @first_move == true && color == "white" && @coord[0] == new_coord[0] && new_coord[1] == 4
+      return true
+    when color == "black" && @coord[0] == new_coord[0] && new_coord[1] == (@coord[1] - 1)
+      return true
+    when color == "white" && @coord[0] == new_coord[0] && new_coord[1] == (@coord[1] + 1)
+      return true
+    else
+      return false
     end
   end
 
