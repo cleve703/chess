@@ -92,6 +92,29 @@ class Knight < Pieces
     end
   end
 
+  def valid_moves(new_coord)
+    case
+    when @coord[0] + 1 == new_coord[0] && @coord[1] + 2 == new_coord[1]
+      return true
+    when @coord[0] + 2 == new_coord[0] && @coord[1] + 1 == new_coord[1]
+      return true
+    when @coord[0] - 1 == new_coord[0] && @coord[1] + 2 == new_coord[1]
+      return true
+    when @coord[0] - 2 == new_coord[0] && @coord[1] + 1 == new_coord[1]
+      return true
+    when @coord[0] + 1 == new_coord[0] && @coord[1] - 2 == new_coord[1]
+      return true
+    when @coord[0] + 2 == new_coord[0] && @coord[1] - 1 == new_coord[1]
+      return true
+    when @coord[0] - 1 == new_coord[0] && @coord[1] - 2 == new_coord[1]
+      return true
+    when @coord[0] - 2 == new_coord[0] && @coord[1] - 1 == new_coord[1]
+      return true
+    else
+      return false
+    end
+  end
+
 end
 
 class Pawn < Pieces

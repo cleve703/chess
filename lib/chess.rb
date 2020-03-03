@@ -76,7 +76,7 @@ class Game
       if @board.validate_cur_coord(color, cur_coord) == true
         valid_initial_coord = true
       else
-        puts "Invalid selection, try again..."
+        puts "Invalid selection, try again...".red
         valid_initial_coord = false
       end
     end
@@ -90,12 +90,15 @@ class Game
       end
       new_coord = @board.translate(new_coord)
       if !@board.board_coord.include?(new_coord)
-        puts "Try again, dummy.  This time select grid coordinates that are on the board."
+        puts "Try again, dummy.  This time select grid coordinates that are on the board.".red
         puts ""
         valid_dest_coord = false
       elsif @board.ret_board_hash_piece(cur_coord).valid_moves(new_coord) == true
         @board.move_piece(cur_coord, new_coord)
         valid_dest_coord = true
+      elsif @board.ret_board_hash_piece(cur_coord).valid_moves(new_coord) == false
+        puts "That piece can't move to the destination selected.  Try again.".red
+        puts ""
       end
     end
   end
