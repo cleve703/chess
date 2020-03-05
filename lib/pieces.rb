@@ -17,6 +17,29 @@ class King < Pieces
     end
   end
 
+  def valid_moves(new_coord)
+    case
+    when @coord[0] == new_coord[0] && new_coord[1] == @coord[1] + 1
+      return true
+    when @coord[1] == new_coord[1] && new_coord[0] == @coord[0] + 1
+      return true
+    when @coord[0] == new_coord[0] && new_coord[1] == @coord[1] - 1
+      return true
+    when @coord[1] == new_coord[1] && new_coord[0] == @coord[0] - 1
+      return true
+    when new_coord[1] == @coord[1] + 1 && new_coord[0] == @coord[0] + 1
+      return true
+    when new_coord[1] == @coord[1] + 1 && new_coord[0] == @coord[0] - 1
+      return true
+    when new_coord[1] == @coord[1] - 1 && new_coord[0] == @coord[0] + 1
+      return true
+    when new_coord[1] == @coord[1] - 1 && new_coord[0] == @coord[0] - 1
+      return true
+    else
+      return false
+    end
+  end
+
 end
 
 class Queen < Pieces
@@ -51,9 +74,9 @@ class Rook < Pieces
 
   def valid_moves(new_coord)
     case
-    when @coord[0] == new_coord[0]
+    when @coord[0] == new_coord[0] && @coord[1] != new_coord[1]
       return true
-    when @coord[1] == new_coord[1]
+    when @coord[1] == new_coord[1] && @coord[0] != new_coord[0]
       return true
     else
       return false

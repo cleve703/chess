@@ -93,6 +93,10 @@ class Game
         puts "Try again, dummy.  This time select grid coordinates that are on the board.".red
         puts ""
         valid_dest_coord = false
+      elsif @board.validate_cur_coord(color, new_coord) == true
+        puts "Don't be silly.  You can't move to a space already occupied by the same color!".red
+        puts ""
+        valid_dest_coord = false
       elsif @board.ret_board_hash_piece(cur_coord).valid_moves(new_coord) == true
         @board.move_piece(cur_coord, new_coord)
         valid_dest_coord = true
