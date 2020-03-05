@@ -1,9 +1,4 @@
-class Pieces
-  def initialize
-  end
-end
-
-class King < Pieces
+class King
   attr_accessor :coord, :color, :icon
   
   def initialize(coord, color)
@@ -42,7 +37,7 @@ class King < Pieces
 
 end
 
-class Queen < Pieces
+class Queen
   attr_accessor :coord, :color, :icon
 
   def initialize(coord, color)
@@ -56,9 +51,36 @@ class Queen < Pieces
     end
   end
 
+  def valid_moves(new_coord)
+    i = 1
+    while i < 8
+      if @coord[0] + i == new_coord[0] && @coord[1] + i == new_coord[1]
+        return true
+      elsif @coord[0] + i == new_coord[0] && @coord[1] - i == new_coord[1]
+        return true
+      elsif @coord[0] - i == new_coord[0] && @coord[1] + i == new_coord[1]
+        return true
+      elsif @coord[0] - i == new_coord[0] && @coord[1] - i == new_coord[1]
+        return true
+      elsif @coord[0] + i == new_coord[0] && @coord[1] == new_coord[1]
+        return true
+      elsif @coord[0] - i == new_coord[0] && @coord[1] == new_coord[1]
+        return true
+      elsif @coord[0] == new_coord[0] && @coord[1] + i == new_coord[1]
+        return true
+      elsif @coord[0] == new_coord[0] && @coord[1] - i == new_coord[1]
+        return true
+      else
+        i += 1
+      end
+    end
+    return false
+  end
+
+
 end
 
-class Rook < Pieces
+class Rook
   attr_accessor :coord, :color, :icon
 
   def initialize(coord, color)
@@ -85,7 +107,7 @@ class Rook < Pieces
 
 end
 
-class Bishop < Pieces
+class Bishop
   attr_accessor :coord, :color, :icon
 
   def initialize(coord, color)
@@ -99,9 +121,27 @@ class Bishop < Pieces
     end
   end
 
+  def valid_moves(new_coord)
+    i = 1
+    while i < 8
+      if @coord[0] + i == new_coord[0] && @coord[1] + i == new_coord[1]
+        return true
+      elsif @coord[0] + i == new_coord[0] && @coord[1] - i == new_coord[1]
+        return true
+      elsif @coord[0] - i == new_coord[0] && @coord[1] + i == new_coord[1]
+        return true
+      elsif @coord[0] - i == new_coord[0] && @coord[1] - i == new_coord[1]
+        return true
+      else
+        i += 1
+      end
+    end
+    return false
+  end
+
 end
 
-class Knight < Pieces
+class Knight
   attr_accessor :coord, :color, :icon
 
   def initialize(coord, color)
@@ -140,7 +180,7 @@ class Knight < Pieces
 
 end
 
-class Pawn < Pieces
+class Pawn
   attr_accessor :coord, :color, :icon
 
   def initialize(coord, color)
