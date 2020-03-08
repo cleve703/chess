@@ -81,6 +81,7 @@ class Game
       end
     end
     valid_dest_coord = false
+    board_hash = @board.ret_board_hash
     while valid_dest_coord == false
       puts "#{color.upcase} - Enter the desired destination coordinates, or type RESTART: "
       new_coord = gets.chomp.downcase
@@ -97,12 +98,15 @@ class Game
         puts "Don't be silly.  You can't move to a space already occupied by the same color!".red
         puts ""
         valid_dest_coord = false
-      elsif @board.ret_board_hash_piece(cur_coord).valid_moves(new_coord) == true
-        @board.move_piece(cur_coord, new_coord)
-        valid_dest_coord = true
-      elsif @board.ret_board_hash_piece(cur_coord).valid_moves(new_coord) == false
+      else
+        case @board.ret_board_hash_piece(cur_coord).valid_moves(new_coord, board_hash)
+        when true
+          @board.move_piece(cur_coord, new_coord)
+          valid_dest_coord = true
+        when false
         puts "That piece can't move to the destination selected.  Try again.".red
         puts ""
+        end
       end
     end
   end

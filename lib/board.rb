@@ -23,6 +23,10 @@ class Board
       @board_hash[coord] = nil
     end 
   end
+
+  def ret_board_hash
+    @board_hash
+  end
   
   def assign_coord(coord, piece)
     @board_hash[coord] = piece
