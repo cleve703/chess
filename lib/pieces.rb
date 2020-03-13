@@ -1,9 +1,11 @@
 class King
-  attr_accessor :coord, :color, :icon
+  attr_accessor :color, :icon, :move_count
+  attr_reader :name
   
-  def initialize(coord, color)
-    @coord = coord
+  def initialize(color)
+    @name = "King"
     @color = color
+    @move_count = 0
     case
     when @color == "black"
       @icon = "♚".black
@@ -12,23 +14,23 @@ class King
     end
   end
 
-  def valid_moves(new_coord, board_hash)
+  def valid_moves(cur_coord, new_coord, attack, board_hash)
     case
-    when @coord[0] == new_coord[0] && new_coord[1] == @coord[1] + 1
+    when cur_coord[0] == new_coord[0] && new_coord[1] == cur_coord[1] + 1
       return true
-    when @coord[1] == new_coord[1] && new_coord[0] == @coord[0] + 1
+    when cur_coord[1] == new_coord[1] && new_coord[0] == cur_coord[0] + 1
       return true
-    when @coord[0] == new_coord[0] && new_coord[1] == @coord[1] - 1
+    when cur_coord[0] == new_coord[0] && new_coord[1] == cur_coord[1] - 1
       return true
-    when @coord[1] == new_coord[1] && new_coord[0] == @coord[0] - 1
+    when cur_coord[1] == new_coord[1] && new_coord[0] == cur_coord[0] - 1
       return true
-    when new_coord[1] == @coord[1] + 1 && new_coord[0] == @coord[0] + 1
+    when new_coord[1] == cur_coord[1] + 1 && new_coord[0] == cur_coord[0] + 1
       return true
-    when new_coord[1] == @coord[1] + 1 && new_coord[0] == @coord[0] - 1
+    when new_coord[1] == cur_coord[1] + 1 && new_coord[0] == cur_coord[0] - 1
       return true
-    when new_coord[1] == @coord[1] - 1 && new_coord[0] == @coord[0] + 1
+    when new_coord[1] == cur_coord[1] - 1 && new_coord[0] == cur_coord[0] + 1
       return true
-    when new_coord[1] == @coord[1] - 1 && new_coord[0] == @coord[0] - 1
+    when new_coord[1] == cur_coord[1] - 1 && new_coord[0] == cur_coord[0] - 1
       return true
     else
       return false
@@ -38,11 +40,13 @@ class King
 end
 
 class Queen
-  attr_accessor :coord, :color, :icon
+  attr_accessor :color, :icon, :move_count
+  attr_reader :name
 
-  def initialize(coord, color)
-    @coord = coord
+  def initialize(color)
     @color = color
+    @name = "Queen"
+    @move_count = 0
     case
     when @color == "black"
       @icon = "♛".black
@@ -51,153 +55,84 @@ class Queen
     end
   end
 
-  def valid_moves(new_coord, board_hash)
-    valid_moves_array = []
-    forward = true
-    forward_right = true
-    right = true
-    backward_right = true
-    backward = true
-    backward_left = true
-    left = true
-    forward_left = true
-    # forward
+  def valid_moves(cur_coord, new_coord, attack, board_hash)
     i = 1
-    while forward == true
-      move = [@coord[0], @coord[1] + i]
-      if !board_hash.has_key?(move)
-        forward = false
-      elsif board_hash[move].nil?
-        valid_moves_array.push(move)
+    zero_plus_path = []
+    zero_minus_path = []
+    plus_zero_path = []
+    minus_zero_path = []
+    plus_plus_path = []
+    plus_minus_path = []
+    minus_plus_path = []
+    minus_minus_path = []
+    while i < 8
+      plus_zero_path.push(board_hash[[cur_coord[0] + i, cur_coord[1]]].nil?)
+      minus_zero_path.push(board_hash[[cur_coord[0] - i, cur_coord[1]]].nil?)
+      zero_plus_path.push(board_hash[[cur_coord[0], cur_coord[1] + i]].nil?)
+      zero_minus_path.push(board_hash[[cur_coord[0], cur_coord[1] - i]].nil?)
+      plus_plus_path.push(board_hash[[cur_coord[0] + i, cur_coord[1] + i]].nil?)
+      plus_minus_path.push(board_hash[[cur_coord[0] + i, cur_coord[1] - i]].nil?)
+      minus_plus_path.push(board_hash[[cur_coord[0] - i, cur_coord[1] + i]].nil?)
+      minus_minus_path.push(board_hash[[cur_coord[0] - i, cur_coord[1] - i]].nil?)
+      case
+      when cur_coord[0] == new_coord[0] && cur_coord[1] + i == new_coord[1]
+        temp = zero_plus_path
+        temp.pop
+        return true if !temp.include?(false)
         i += 1
-      elsif board_hash[move].color == @color
-        forward = false
-      elsif board_hash[move].color != @color
-        valid_moves_array.push(move)
-        forward = false
+      when cur_coord[0] == new_coord[0] && cur_coord[1] - i == new_coord[1]
+        temp = zero_minus_path
+        temp.pop
+        return true if !temp.include?(false)
+        i += 1
+      when cur_coord[1] == new_coord[1] && cur_coord[0] + i == new_coord[0]
+        temp = plus_zero_path
+        temp.pop
+        return true if !temp.include?(false)
+        i += 1
+      when cur_coord[1] == new_coord[1] && cur_coord[0] - i == new_coord[0]
+        temp = minus_zero_path
+        temp.pop
+        return true if !temp.include?(false)
+        i += 1
+      when cur_coord[0] + i == new_coord[0] && cur_coord[1] + i == new_coord[1]
+        temp = plus_plus_path
+        temp.pop
+        return true if !temp.include?(false)
+        i += 1
+      when cur_coord[0] + i == new_coord[0] && cur_coord[1] - i == new_coord[1]
+        temp = plus_minus_path
+        temp.pop
+        return true if !temp.include?(false)
+        i += 1
+      when cur_coord[0] - i == new_coord[0] && cur_coord[1] + i == new_coord[1]
+        temp = minus_plus_path
+        temp.pop
+        return true if !temp.include?(false)
+        i += 1
+      when cur_coord[0] - i == new_coord[0] && cur_coord[1] - i == new_coord[1]
+        temp = minus_minus_path
+        temp.pop
+        return true if !temp.include?(false)
+        i += 1
+      else
+        i += 1
       end
     end
-    # forward_right
-    while forward_right == true
-      move = [@coord[0] + i, @coord[1] +i]
-      if !board_hash.has_key?(move)
-        forward = false
-      elsif board_hash[move].nil?
-        valid_moves_array.push(move)
-        i += 1
-      elsif board_hash[move].color == @color
-        forward = false
-      elsif board_hash[move].color != @color
-        valid_moves_array.push(move)
-        forward = false
-      end
-    end
-    # right
-    while right == true
-      move = [@coord[0] + i, @coord[1]]
-      if !board_hash.has_key?(move)
-        forward = false
-      elsif board_hash[move].nil?
-        valid_moves_array.push(move)
-        i += 1
-      elsif board_hash[move].color == @color
-        forward = false
-      elsif board_hash[move].color != @color
-        valid_moves_array.push(move)
-        forward = false
-      end
-    end
-    # backward_right
-    while backward_right == true
-      move = [@coord[0] + i, @coord[1] - i]
-      if !board_hash.has_key?(move)
-        forward = false
-      elsif board_hash[move].nil?
-        valid_moves_array.push(move)
-        i += 1
-      elsif board_hash[move].color == @color
-        forward = false
-      elsif board_hash[move].color != @color
-        valid_moves_array.push(move)
-        forward = false
-      end
-    end
-    # backward
-    while backward == true
-      move = [@coord[0] - i, @coord[1]]
-      if !board_hash.has_key?(move)
-        forward = false
-      elsif board_hash[move].nil?
-        valid_moves_array.push(move)
-        i += 1
-      elsif board_hash[move].color == @color
-        forward = false
-      elsif board_hash[move].color != @color
-        valid_moves_array.push(move)
-        forward = false
-      end
-    end
-    # backward_left
-    while backward_left == true
-      move = [@coord[0] - i, @coord[1] - i]
-      if !board_hash.has_key?(move)
-        forward = false
-      elsif board_hash[move].nil?
-        valid_moves_array.push(move)
-        i += 1
-      elsif board_hash[move].color == @color
-        forward = false
-      elsif board_hash[move].color != @color
-        valid_moves_array.push(move)
-        forward = false
-      end
-    end
-    # left
-    while left == true
-      move = [@coord[0] - i, @coord[1]]
-      if !board_hash.has_key?(move)
-        forward = false
-      elsif board_hash[move].nil?
-        valid_moves_array.push(move)
-        i += 1
-      elsif board_hash[move].color == @color
-        forward = false
-      elsif board_hash[move].color != @color
-        valid_moves_array.push(move)
-        forward = false
-      end
-    end
-    # forward_left
-    while forward_left == true
-      move = [@coord[0] - i, @coord[1] + i]
-      if !board_hash.has_key?(move)
-        forward = false
-      elsif board_hash[move].nil?
-        valid_moves_array.push(move)
-        i += 1
-      elsif board_hash[move].color == @color
-        forward = false
-      elsif board_hash[move].color != @color
-        valid_moves_array.push(move)
-        forward = false
-      end
-    end
-    if valid_moves_array.include?(new_coord)
-      return true
-    else
-      return false
-    end
+    return false
   end
 
 
 end
 
 class Rook
-  attr_accessor :coord, :color, :icon
+  attr_accessor :color, :icon, :move_count
+  attr_reader :name
 
-  def initialize(coord, color)
-    @coord = coord
+  def initialize(color)
+    @name = "Rook"
     @color = color
+    @move_count = 0
     case
     when @color == "black"
       @icon = "♜".black
@@ -206,39 +141,35 @@ class Rook
     end
   end
 
-  def valid_moves(new_coord, board_hash)
+  def valid_moves(cur_coord, new_coord, attack, board_hash)
     i = 1
     zero_plus_path = []
     zero_minus_path = []
     plus_zero_path = []
     minus_zero_path = []
     while i < 8
-      plus_zero_path.push(board_hash[[@coord[0] + i, @coord[1]]].nil?)
-      minus_zero_path.push(board_hash[[@coord[0] - i, @coord[1]]].nil?)
-      zero_plus_path.push(board_hash[[@coord[0], @coord[1] + i]].nil?)
-      zero_minus_path.push(board_hash[[@coord[0], @coord[1] - i]].nil?)
+      plus_zero_path.push(board_hash[[cur_coord[0] + i, cur_coord[1]]].nil?)
+      minus_zero_path.push(board_hash[[cur_coord[0] - i, cur_coord[1]]].nil?)
+      zero_plus_path.push(board_hash[[cur_coord[0], cur_coord[1] + i]].nil?)
+      zero_minus_path.push(board_hash[[cur_coord[0], cur_coord[1] - i]].nil?)
       case
-      when @coord[0] == new_coord[0] && @coord[1] + i == new_coord[1]
+      when cur_coord[0] == new_coord[0] && cur_coord[1] + i == new_coord[1]
         temp = zero_plus_path
-        puts temp
         temp.pop
         return true if !temp.include?(false)
         i += 1
-      when @coord[0] == new_coord[0] && @coord[1] - i == new_coord[1]
+      when cur_coord[0] == new_coord[0] && cur_coord[1] - i == new_coord[1]
         temp = zero_minus_path
-        puts temp
         temp.pop
         return true if !temp.include?(false)
         i += 1
-      when @coord[1] == new_coord[1] && @coord[0] + i == new_coord[0]
+      when cur_coord[1] == new_coord[1] && cur_coord[0] + i == new_coord[0]
         temp = plus_zero_path
-        puts temp
         temp.pop
         return true if !temp.include?(false)
         i += 1
-      when @coord[1] == new_coord[1] && @coord[0] - i == new_coord[0]
+      when cur_coord[1] == new_coord[1] && cur_coord[0] - i == new_coord[0]
         temp = minus_zero_path
-        puts temp
         temp.pop
         return true if !temp.include?(false)
         i += 1
@@ -252,11 +183,13 @@ class Rook
 end
 
 class Bishop
-  attr_accessor :coord, :color, :icon
+  attr_accessor :color, :icon, :move_count
+  attr_reader :name
 
-  def initialize(coord, color)
-    @coord = coord
+  def initialize(color)
+    @name = "Bishop"
     @color = color
+    @move_count = 0
     case
     when @color == "black"
       @icon = "♝".black
@@ -265,34 +198,34 @@ class Bishop
     end
   end
 
-  def valid_moves(new_coord, board_hash)
+  def valid_moves(cur_coord, new_coord, attack, board_hash)
     i = 1
     plus_plus_path = []
     plus_minus_path = []
     minus_plus_path = []
     minus_minus_path = []
     while i < 8
-      plus_plus_path.push(board_hash[[@coord[0] + i, @coord[1] + i]].nil?)
-      plus_minus_path.push(board_hash[[@coord[0] + i, @coord[1] - i]].nil?)
-      minus_plus_path.push(board_hash[[@coord[0] - i, @coord[1] + i]].nil?)
-      minus_minus_path.push(board_hash[[@coord[0] - i, @coord[1] - i]].nil?)
+      plus_plus_path.push(board_hash[[cur_coord[0] + i, cur_coord[1] + i]].nil?)
+      plus_minus_path.push(board_hash[[cur_coord[0] + i, cur_coord[1] - i]].nil?)
+      minus_plus_path.push(board_hash[[cur_coord[0] - i, cur_coord[1] + i]].nil?)
+      minus_minus_path.push(board_hash[[cur_coord[0] - i, cur_coord[1] - i]].nil?)
       case
-      when @coord[0] + i == new_coord[0] && @coord[1] + i == new_coord[1]
+      when cur_coord[0] + i == new_coord[0] && cur_coord[1] + i == new_coord[1]
         temp = plus_plus_path
         temp.pop
         return true if !temp.include?(false)
         i += 1
-      when @coord[0] + i == new_coord[0] && @coord[1] - i == new_coord[1]
+      when cur_coord[0] + i == new_coord[0] && cur_coord[1] - i == new_coord[1]
         temp = plus_minus_path
         temp.pop
         return true if !temp.include?(false)
         i += 1
-      when @coord[0] - i == new_coord[0] && @coord[1] + i == new_coord[1]
+      when cur_coord[0] - i == new_coord[0] && cur_coord[1] + i == new_coord[1]
         temp = minus_plus_path
         temp.pop
         return true if !temp.include?(false)
         i += 1
-      when @coord[0] - i == new_coord[0] && @coord[1] - i == new_coord[1]
+      when cur_coord[0] - i == new_coord[0] && cur_coord[1] - i == new_coord[1]
         temp = minus_minus_path
         temp.pop
         return true if !temp.include?(false)
@@ -307,11 +240,13 @@ class Bishop
 end
 
 class Knight
-  attr_accessor :coord, :color, :icon
+  attr_accessor :color, :icon, :move_count
+  attr_reader :name
 
-  def initialize(coord, color)
-    @coord = coord
+  def initialize(color)
+    @name = "Knight"
     @color = color
+    @move_count = 0
     case
     when @color == "black"
       @icon = "♞".black
@@ -320,23 +255,23 @@ class Knight
     end
   end
 
-  def valid_moves(new_coord, board_hash)
+  def valid_moves(cur_coord, new_coord, attack, board_hash)
     case
-    when @coord[0] + 1 == new_coord[0] && @coord[1] + 2 == new_coord[1]
+    when cur_coord[0] + 1 == new_coord[0] && cur_coord[1] + 2 == new_coord[1]
       return true
-    when @coord[0] + 2 == new_coord[0] && @coord[1] + 1 == new_coord[1]
+    when cur_coord[0] + 2 == new_coord[0] && cur_coord[1] + 1 == new_coord[1]
       return true
-    when @coord[0] - 1 == new_coord[0] && @coord[1] + 2 == new_coord[1]
+    when cur_coord[0] - 1 == new_coord[0] && cur_coord[1] + 2 == new_coord[1]
       return true
-    when @coord[0] - 2 == new_coord[0] && @coord[1] + 1 == new_coord[1]
+    when cur_coord[0] - 2 == new_coord[0] && cur_coord[1] + 1 == new_coord[1]
       return true
-    when @coord[0] + 1 == new_coord[0] && @coord[1] - 2 == new_coord[1]
+    when cur_coord[0] + 1 == new_coord[0] && cur_coord[1] - 2 == new_coord[1]
       return true
-    when @coord[0] + 2 == new_coord[0] && @coord[1] - 1 == new_coord[1]
+    when cur_coord[0] + 2 == new_coord[0] && cur_coord[1] - 1 == new_coord[1]
       return true
-    when @coord[0] - 1 == new_coord[0] && @coord[1] - 2 == new_coord[1]
+    when cur_coord[0] - 1 == new_coord[0] && cur_coord[1] - 2 == new_coord[1]
       return true
-    when @coord[0] - 2 == new_coord[0] && @coord[1] - 1 == new_coord[1]
+    when cur_coord[0] - 2 == new_coord[0] && cur_coord[1] - 1 == new_coord[1]
       return true
     else
       return false
@@ -346,12 +281,13 @@ class Knight
 end
 
 class Pawn
-  attr_accessor :coord, :color, :icon
+  attr_accessor :color, :icon, :move_count
+  attr_reader :name
 
-  def initialize(coord, color)
-    @coord = coord
+  def initialize(color)
+    @name = "Pawn"
     @color = color
-    @first_move = true
+    @move_count = 0
     case
     when @color == "black"
       @icon = "♟".black
@@ -360,32 +296,20 @@ class Pawn
     end
   end
 
-  def valid_moves(new_coord, board_hash)
+  def valid_moves(cur_coord, new_coord, attack, board_hash)
     case
-    when @first_move == true && color == "black" && @coord[0] == new_coord[0] && new_coord[1] == 5
-      if board_hash[[@coord[0], 6]].nil? && board_hash[[@coord[0], 5]].nil?
+    when attack == false && @move_count == 0 && @color == "black" && cur_coord[0] == new_coord[0] && new_coord[1] == 5
       return true
-      end
-    when @first_move == true && color == "white" && @coord[0] == new_coord[0] && new_coord[1] == 4
-      if board_hash[[@coord[0], 3]].nil? && board_hash[[@coord[0], 4]].nil?
+    when attack == false && @move_count == 0 && @color == "white" && cur_coord[0] == new_coord[0] && new_coord[1] == 4
       return true
-      end
-    when color == "black" && @coord[0] == new_coord[0] && new_coord[1] == (@coord[1] - 1)
-      if board_hash[[new_coord]].nil?
+    when attack == false && @color == "black" && cur_coord[0] == new_coord[0] && new_coord[1] == (cur_coord[1] - 1)
       return true
-      end
-    when color == "white" && @coord[0] == new_coord[0] && new_coord[1] == (@coord[1] + 1)
-      if board_hash[[new_coord]].nil?
+    when attack == false && @color == "white" && cur_coord[0] == new_coord[0] && new_coord[1] == (cur_coord[1] + 1)
       return true
-      end
-    when color == "black" && (@coord[0] + 1 || @coord[0] - 1) == new_coord[0] && new_coord[1] == (@coord[1] - 1)
-      if board_hash[[new_coord]].color != @color
+    when attack == true && @color == "black" && ((cur_coord[0] + 1 == new_coord[0]) || (cur_coord[0] - 1 == new_coord[0])) && new_coord[1] == (cur_coord[1] - 1)
       return true
-      end
-    when color == "white" && (@coord[0] + 1 || @coord[0] - 1) == new_coord[0] && new_coord[1] == (@coord[1] + 1)
-      if board_hash[[new_coord]].color != @color
+    when attack == true && @color == "white" && ((cur_coord[0] + 1 == new_coord[0]) || (cur_coord[0] - 1 == new_coord[0])) && new_coord[1] == (cur_coord[1] + 1)
       return true
-      end
     else
       return false
     end

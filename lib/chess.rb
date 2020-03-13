@@ -4,56 +4,13 @@ require_relative './board.rb'
 require_relative './pieces.rb'
 
 class Game
-  attr_accessor :chess_pieces, :pieces
+  attr_accessor 
   
   def initialize
-    create_pieces
-    @board = Board.new(@pieces)
+    @board = Board.new
+    @in_check = false
     @game_over = false
     turn_sequence
-  end
-
-  def create_pieces
-    @white_pawn1 = Pawn.new([1,2], "white")
-    @white_pawn2 = Pawn.new([2,2], "white")
-    @white_pawn3 = Pawn.new([3,2], "white")
-    @white_pawn4 = Pawn.new([4,2], "white")
-    @white_pawn5 = Pawn.new([5,2], "white")
-    @white_pawn6 = Pawn.new([6,2], "white")
-    @white_pawn7 = Pawn.new([7,2], "white")
-    @white_pawn8 = Pawn.new([8,2], "white")
-    @white_rook1 = Rook.new([1,1], "white")
-    @white_rook2 = Rook.new([8,1], "white")
-    @white_knight1 = Knight.new([2,1], "white")
-    @white_knight2 = Knight.new([7,1], "white")
-    @white_bishop1 = Bishop.new([3,1], "white")
-    @white_bishop2 = Bishop.new([6,1], "white")
-    @white_king = King.new([4,1], "white")
-    @white_queen = Queen.new([5,1], "white")
-    @black_pawn1 = Pawn.new([1,7], "black")
-    @black_pawn2 = Pawn.new([2,7], "black")
-    @black_pawn3 = Pawn.new([3,7], "black")
-    @black_pawn4 = Pawn.new([4,7], "black")
-    @black_pawn5 = Pawn.new([5,7], "black")
-    @black_pawn6 = Pawn.new([6,7], "black")
-    @black_pawn7 = Pawn.new([7,7], "black")
-    @black_pawn8 = Pawn.new([8,7], "black")
-    @black_rook1 = Rook.new([1,8], "black")
-    @black_rook2 = Rook.new([8,8], "black")
-    @black_knight1 = Knight.new([2,8], "black")
-    @black_knight2 = Knight.new([7,8], "black")
-    @black_bishop1 = Bishop.new([3,8], "black")
-    @black_bishop2 = Bishop.new([6,8], "black")
-    @black_queen = Queen.new([4,8], "black")
-    @black_king = King.new([5,8], "black")
-    @pieces = [@white_pawn1, @white_pawn2, @white_pawn3, @white_pawn4,
-              @white_pawn5, @white_pawn6, @white_pawn7, @white_pawn8,
-              @white_bishop1, @white_bishop2, @white_king, @white_knight1,
-              @white_knight2, @white_rook1, @white_rook2, @white_queen,
-              @black_pawn1, @black_pawn2, @black_pawn3, @black_pawn4,
-              @black_pawn5, @black_pawn6, @black_pawn7, @black_pawn8,
-              @black_rook1, @black_rook2, @black_knight1, @black_knight2,
-              @black_bishop1, @black_bishop2, @black_queen, @black_king]
   end
   
   def turn_sequence
@@ -67,22 +24,52 @@ class Game
       i += 1
     end
   end
+
+  def turn(my_color)
+    if my_color == "black"
+      opp_color = "white"
+    elsif my_color == "white"
+      opp_color = "black"
+    end
+    @board.display_board
+    if analyze_board_check(my_color, @board.board_hash) == true
+      if analyze_board_check_mate(my_color) == true
+        puts "CHECK MATE - #{opp_color} wins!"
+        puts ""
+      else
+        puts "#{my_color.upcase} - You are in check! You must make a move to get out of check.".red
+        puts ""
+      end
+    end
+    cur_coord = input_starting_coord(my_color, opp_color)
+    input_ending_coord(my_color, opp_color, cur_coord)
+  end
   
-  def turn(color)
+  def input_starting_coord(color, opp_color)
     valid_initial_coord = false
     while valid_initial_coord == false
       puts "#{color.upcase}'s turn. Enter the grid coordinates of the piece you want to move: "
       cur_coord = @board.translate(gets.chomp.downcase)
-      if @board.validate_cur_coord(color, cur_coord) == true
+      if @board.board_hash[cur_coord].nil?
+        puts "Invalid selection, try again...".red
+        puts ""
+      elsif @board.board_hash[cur_coord].color == color
         valid_initial_coord = true
+        return cur_coord
       else
         puts "Invalid selection, try again...".red
-        valid_initial_coord = false
+        puts ""
       end
     end
+  end
+
+  def input_ending_coord(color, opp_color, cur_coord)
     valid_dest_coord = false
-    board_hash = @board.ret_board_hash
+    board_hash = @board.board_hash
     while valid_dest_coord == false
+      @board.copy_board_hash
+      temp_board_hash = @board.temp_board_hash
+      piece = temp_board_hash[cur_coord]
       puts "#{color.upcase} - Enter the desired destination coordinates, or type RESTART: "
       new_coord = gets.chomp.downcase
       if new_coord == "restart"
@@ -90,27 +77,112 @@ class Game
         break
       end
       new_coord = @board.translate(new_coord)
-      if !@board.board_coord.include?(new_coord)
-        puts "Try again, dummy.  This time select grid coordinates that are on the board.".red
+      case
+      when !space_exists?(temp_board_hash, new_coord)
+        puts "Must select a space that's on the board. Try again!".red
         puts ""
         valid_dest_coord = false
-      elsif @board.validate_cur_coord(color, new_coord) == true
-        puts "Don't be silly.  You can't move to a space already occupied by the same color!".red
+      when color_match?(color, temp_board_hash, new_coord) == true
+        puts "Can't move to a space already occupied by your own color. Try again!".red
         puts ""
-        valid_dest_coord = false
-      else
-        case @board.ret_board_hash_piece(cur_coord).valid_moves(new_coord, board_hash)
-        when true
-          @board.move_piece(cur_coord, new_coord)
-          valid_dest_coord = true
-        when false
-        puts "That piece can't move to the destination selected.  Try again.".red
-        puts ""
+      when color_match?(color, temp_board_hash, new_coord) == false
+        if temp_board_hash[cur_coord].valid_moves(cur_coord, new_coord, true, board_hash) == true
+          @board.attack_piece(cur_coord, new_coord, temp_board_hash, @board.temp_dead_pieces, @board.temp_active_pieces)
+          if analyze_board_check(color, temp_board_hash) == true
+            puts "This move results in you being in check - illegal move. Try again!".red
+            puts ""
+          else
+            @board.attack_piece(cur_coord, new_coord, board_hash, @board.dead_pieces, @board.pieces)
+            increase_move_count(board_hash, new_coord)
+            valid_dest_coord = true
+          end
+        else
+          puts "You can't move the #{piece.name} to that space right now. Try again!".red
+          puts ""
+        end
+      when space_empty?(temp_board_hash, new_coord) == true
+        if temp_board_hash[cur_coord].valid_moves(cur_coord, new_coord, false, board_hash) == true
+          @board.move_piece(cur_coord, new_coord, temp_board_hash)
+          if analyze_board_check(color, temp_board_hash) == true
+            puts "This move results in you being in check - illegal move. Try again!".red
+            puts ""
+          else
+            @board.move_piece(cur_coord, new_coord, board_hash)
+            increase_move_count(board_hash, new_coord)
+            valid_dest_coord = true
+          end
+        else
+          puts "You can't move the #{piece.name} to that space right now. Try again!".red
+          puts ""
         end
       end
     end
   end
+
+  def space_exists?(test_hash, coord)
+    if test_hash.has_key?(coord)
+      return true
+    else
+      return false
+    end
+  end
+
+  def color_match?(test_color, test_hash, coord)
+    if test_hash[coord].nil?
+    elsif test_hash[coord].color == test_color
+      return true
+    else
+      return false
+    end
+  end
+
+  def space_empty?(test_hash, coord)
+    if test_hash[coord].nil?
+      return true
+    else
+      return false
+    end
+  end
+
+  def increase_move_count(test_hash, coord)
+    test_hash[coord].move_count += 1
+  end
+
+  def analyze_board_check(my_color, test_hash)
+    # returns true if given color is in check
+    if my_color == "black"
+      opp_color = "white"
+    elsif my_color == "white"
+      opp_color = "black"
+    end
+    if my_color == "black"
+      king = @board.black_king
+    elsif my_color == "white"
+      king = @board.white_king
+    end
+    opp_pieces = []
+    @board.pieces.each do |piece|
+      opp_pieces.push(piece) if piece.color == opp_color && !test_hash.key(piece).nil?
+    end
+    opp_pieces.each do |piece|
+      if piece.valid_moves(test_hash.key(piece), test_hash.key(king), true, test_hash) == true
+        puts "#{my_color.upcase} King is in check!".red
+        puts ""
+        return true
+      end
+    end
+    return false
+  end
+
+  def analyze_board_check_mate(my_color)
+    if my_color == "black"
+      opp_color = "white"
+    elsif my_color == "white"
+      opp_color = "black"
+    end
     
+  end
+   
 end
 
 Game.new
