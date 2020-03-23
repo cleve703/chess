@@ -1,11 +1,12 @@
 class King
-  attr_accessor :color, :icon, :move_count
+  attr_accessor :color, :icon, :move_count, :status
   attr_reader :name
   
   def initialize(color)
     @name = "King"
     @color = color
     @move_count = 0
+    @status = "active"
     case
     when @color == "black"
       @icon = "♚".black
@@ -40,13 +41,14 @@ class King
 end
 
 class Queen
-  attr_accessor :color, :icon, :move_count
+  attr_accessor :color, :icon, :move_count, :status
   attr_reader :name
 
   def initialize(color)
     @color = color
     @name = "Queen"
     @move_count = 0
+    @status = "active"
     case
     when @color == "black"
       @icon = "♛".black
@@ -126,13 +128,14 @@ class Queen
 end
 
 class Rook
-  attr_accessor :color, :icon, :move_count
+  attr_accessor :color, :icon, :move_count, :status
   attr_reader :name
 
   def initialize(color)
     @name = "Rook"
     @color = color
     @move_count = 0
+    @status = "active"
     case
     when @color == "black"
       @icon = "♜".black
@@ -183,13 +186,14 @@ class Rook
 end
 
 class Bishop
-  attr_accessor :color, :icon, :move_count
+  attr_accessor :color, :icon, :move_count, :status
   attr_reader :name
 
   def initialize(color)
     @name = "Bishop"
     @color = color
     @move_count = 0
+    @status = "active"
     case
     when @color == "black"
       @icon = "♝".black
@@ -240,13 +244,14 @@ class Bishop
 end
 
 class Knight
-  attr_accessor :color, :icon, :move_count
+  attr_accessor :color, :icon, :move_count, :status
   attr_reader :name
 
   def initialize(color)
     @name = "Knight"
     @color = color
     @move_count = 0
+    @status = "active"
     case
     when @color == "black"
       @icon = "♞".black
@@ -281,13 +286,14 @@ class Knight
 end
 
 class Pawn
-  attr_accessor :color, :icon, :move_count
+  attr_accessor :color, :icon, :move_count, :status
   attr_reader :name
 
   def initialize(color)
     @name = "Pawn"
     @color = color
     @move_count = 0
+    @status = "active"
     case
     when @color == "black"
       @icon = "♟".black

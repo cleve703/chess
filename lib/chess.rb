@@ -2,224 +2,86 @@
 require_relative './string.rb'
 require_relative './board.rb'
 require_relative './pieces.rb'
+require_relative './game.rb'
+require 'yaml'
 
-class Game
+class Chess
   attr_accessor :board 
   
   def initialize
-    @board = Board.new
     @game_over = false
-    turn_sequence
-  end
-
-  def turn_sequence
-    i = 1
-    while @game_over == false
-      if i.even?
-        turn('black')
-      else
-        turn('white')
-      end
-      i += 1
-    end
-  end
-
-  def turn(my_color)
-    if my_color == "black"
-      opp_color = "white"
-    elsif my_color == "white"
-      opp_color = "black"
-    end
-    @board.display_board
-    if analyze_board_check(my_color, @board.board_hash) == true
-      if analyze_board_check_mate(my_color, @board.board_hash) == true
-        puts "CHECK MATE - #{opp_color} wins!"
-        puts ""
-      else
-        puts "#{my_color.upcase} - You are in check! You must make a move to get out of check.".red
-        puts ""
-      end
-    end
-    cur_coord = input_starting_coord(my_color, opp_color)
-    input_ending_coord(my_color, opp_color, cur_coord)
+    main_menu
   end
   
-  def input_starting_coord(color, opp_color)
-    valid_initial_coord = false
-    while valid_initial_coord == false
-      puts "#{color.upcase}'s turn. Enter the grid coordinates of the piece you want to move: "
-      cur_coord = @board.translate(gets.chomp.downcase)
-      if @board.board_hash[cur_coord].nil?
-        puts "Invalid selection, try again...".red
-        puts ""
-      elsif @board.board_hash[cur_coord].color == color
-        valid_initial_coord = true
-        return cur_coord
-      else
-        puts "Invalid selection, try again...".red
-        puts ""
-      end
-    end
-  end
-
-  def input_ending_coord(color, opp_color, cur_coord)
-    valid_dest_coord = false
-    board_hash = @board.board_hash
-    while valid_dest_coord == false
-      @board.copy_board_hash
-      temp_board_hash = @board.temp_board_hash
-      piece = temp_board_hash[cur_coord]
-      puts "#{color.upcase} - Enter the desired destination coordinates, or type RESTART: "
-      new_coord = gets.chomp.downcase
-      if new_coord == "restart"
-        turn(color)
-        break
-      end
-      new_coord = @board.translate(new_coord)
-      case
-      when !space_exists?(temp_board_hash, new_coord)
-        puts "Must select a space that's on the board. Try again!".red
-        puts ""
-        valid_dest_coord = false
-      when color_match?(color, temp_board_hash, new_coord) == true
-        puts "Can't move to a space already occupied by your own color. Try again!".red
-        puts ""
-      when color_match?(color, temp_board_hash, new_coord) == false
-        if temp_board_hash[cur_coord].valid_moves(cur_coord, new_coord, true, board_hash) == true
-          @board.attack_piece(cur_coord, new_coord, temp_board_hash, @board.temp_dead_pieces, @board.temp_active_pieces)
-          if analyze_board_check(color, temp_board_hash) == true
-            puts "This move results in you being in check - illegal move. Try again!".red
-            puts ""
-          else
-            @board.attack_piece(cur_coord, new_coord, board_hash, @board.dead_pieces, @board.pieces)
-            increase_move_count(board_hash, new_coord)
-            valid_dest_coord = true
-          end
-        else
-          puts "You can't move the #{piece.name} to that space right now. Try again!".red
-          puts ""
-        end
-      when space_empty?(temp_board_hash, new_coord) == true
-        if temp_board_hash[cur_coord].valid_moves(cur_coord, new_coord, false, board_hash) == true
-          @board.move_piece(cur_coord, new_coord, temp_board_hash)
-          if analyze_board_check(color, temp_board_hash) == true
-            puts "This move results in you being in check - illegal move. Try again!".red
-            puts ""
-          else
-            @board.move_piece(cur_coord, new_coord, board_hash)
-            increase_move_count(board_hash, new_coord)
-            valid_dest_coord = true
-          end
-        else
-          puts "You can't move the #{piece.name} to that space right now. Try again!".red
-          puts ""
+  def main_menu
+    app_on = true
+    while app_on == true
+      print %(
+        Welcome to CHESS. Would you like to start a
+        NEW game or LOAD a SAVED game?
+        
+        1 = NEW game
+        2 = LOAD a SAVED game
+        3 = QUIT
+        
+        Enter 1, 2 or 3: )
+        valid_answer = false
+        while valid_answer == false
+          @new_or_saved = gets.chomp.to_i
+          if @new_or_saved == 1
+            valid_answer = true
+            @game = Game.new(false, false)
+          elsif @new_or_saved == 2
+            valid_answer = true
+            saved_games_menu
+          elsif @new_or_saved == 3
+            app_on = false
+            break
+        else print %(You may only enter 1, 2 or 3.  Try again.)
         end
       end
     end
   end
 
-  def space_exists?(test_hash, coord)
-    if test_hash.has_key?(coord)
-      return true
-    else
-      return false
+  def saved_games_menu
+    saved_games_hash = {}
+    saved_games = Dir['./yaml/*.yml'].to_a
+    saved_games.map!.with_index do |f, index|
+      saved_games_hash[index + 1] = f
     end
+    saved_games_readable = []
+    saved_games_hash.each do |key, value|
+      value = value.sub('./yaml/', '')
+      value = value.sub('.yml', '')
+      saved_games_readable.push("#{key}: #{value}")
+    end
+    saved_games_readable = saved_games_readable.join("\n      ")
+    print %(
+      Select the number corresponding to your saved game
+      from the list below:
+
+      #{saved_games_readable}
+
+      Enter a number: )
+    selected_game = gets.chomp.to_i
+    selected_game = saved_games_hash.values_at(selected_game)
+    load_game(selected_game)
   end
 
-  def color_match?(test_color, test_hash, coord)
-    if test_hash[coord].nil?
-    elsif test_hash[coord].color == test_color
-      return true
-    else
-      return false
-    end
+  def load_game(selected_game)
+    selected_game = selected_game.join('')
+    game_data = YAML.load_file(selected_game)
+    # @solution_word = game_data.values_at(:solution_word).join('')
+    # @misses = game_data.values_at(:misses).join('').to_i
+    # @guess_array = game_data.values_at(:guess_array).flatten
+    # @letters = game_data.values_at(:letters).flatten
+    # @solution_array = @solution_word.split('')
+    # @all_guesses = game_data.values_at(:all_guesses).flatten
+    @game = Game.new(true, game_data)
   end
 
-  def space_empty?(test_hash, coord)
-    if test_hash[coord].nil?
-      return true
-    else
-      return false
-    end
-  end
 
-  def increase_move_count(test_hash, coord)
-    test_hash[coord].move_count += 1
-  end
-
-  def analyze_board_check(my_color, test_hash, mute=false)
-    # returns true if given color is in check
-    if my_color == "black"
-      opp_color = "white"
-    elsif my_color == "white"
-      opp_color = "black"
-    end
-    if my_color == "black"
-      king = @board.black_king
-    elsif my_color == "white"
-      king = @board.white_king
-    end
-    opp_pieces = []
-    @board.pieces.each do |piece|
-      opp_pieces.push(piece) if piece.color == opp_color && !test_hash.key(piece).nil?
-    end
-    opp_pieces.each do |piece|
-      if piece.valid_moves(test_hash.key(piece), test_hash.key(king), true, test_hash) == true
-        puts "#{my_color.upcase} King is in check!".red unless mute == true
-        puts "" unless mute == true
-        return true
-      end
-    end
-    return false
-  end
-
-  def analyze_board_check_mate(my_color, test_hash)
-    # returns true if given color is in check mate
-    if my_color == "black"
-      opp_color = "white"
-    elsif my_color == "white"
-      opp_color = "black"
-    end
-    coordinates_possible_moves = []
-    @board.board_coord.each do |coord|
-      if @board.board_hash[coord].nil? || @board.board_hash[coord].color == opp_color
-        coordinates_possible_moves.push(coord)
-      end
-    end
-    my_pieces_coord = []
-    @board.pieces.each do |piece|
-      if piece.color == my_color && !test_hash.key(piece).nil?
-        my_pieces_coord.push(test_hash.key(piece))
-      end
-    end
-    my_pieces_coord.each do |cur_coord|
-      coordinates_possible_moves.each do |new_coord|
-        @board.copy_board_hash
-        temp_board_hash = @board.temp_board_hash
-        case
-        when color_match?(my_color, temp_board_hash, new_coord) == false
-          if temp_board_hash[cur_coord].valid_moves(cur_coord, new_coord, true, temp_board_hash) == true
-            @board.attack_piece(cur_coord, new_coord, temp_board_hash, @board.temp_dead_pieces, @board.temp_active_pieces)
-            if analyze_board_check(my_color, temp_board_hash, true) == true
-            else
-              return false
-            end
-          end
-        when space_empty?(temp_board_hash, new_coord) == true
-          if temp_board_hash[cur_coord].valid_moves(cur_coord, new_coord, false, temp_board_hash) == true
-            @board.move_piece(cur_coord, new_coord, temp_board_hash)
-            if analyze_board_check(my_color, temp_board_hash, true) == true
-            else
-              return false
-            end
-          end
-        end
-      end
-    end
-    @game_over = true
-    return true
-  end
-   
 end
 
-Game.new
+
+Chess.new

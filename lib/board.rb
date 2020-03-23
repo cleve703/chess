@@ -1,23 +1,77 @@
 class Board
   attr_accessor :board_hash, :board_coord, :temp_board_hash
-  attr_reader :black_king, :white_king, :pieces, :temp_dead_pieces, :dead_pieces, :temp_active_pieces, :white_rook1, :white_rook2, :white_bishop1, :white_bishop2
+  attr_reader :pieces, :temp_dead_pieces, :dead_pieces, :temp_active_pieces, 
+              :white_rook1, :white_rook2, :white_bishop1, :white_bishop2,
+              :white_knight1, :white_knight2, 
+              :white_pawn1, :white_pawn2, :white_pawn3, :white_pawn4, :white_pawn5,
+              :white_pawn6, :white_pawn7, :white_pawn8, :white_queen, :white_king, 
+              :black_king, :black_bishop1, :black_bishop2, :black_knight1, :black_knight2,
+              :black_rook1, :black_rook2, :black_queen,
+              :black_pawn1, :black_pawn2, :black_pawn3, :black_pawn4,
+              :black_pawn5, :black_pawn6, :black_pawn7, :black_pawn8,
   
-  def initialize
-    @board_coord = []
-    x = 1
-    while x < 9
-      y = 1
-      while y < 9
-        @board_coord.push([x,y])
-        y += 1
+  def initialize(saved_game=false, game_data=false)
+    if saved_game == false
+      puts "generating board_coord"
+      @board_coord = []
+      x = 1
+      while x < 9
+        y = 1
+        while y < 9
+          @board_coord.push([x,y])
+          y += 1
+        end
+        x += 1
       end
-      x += 1
+      create_pieces
+      create_board_hash
+    elsif saved_game == true
+      load_game_data(game_data)
     end
-    create_pieces
-    create_board_hash
+  end
+
+  def load_game_data(game_data)
+    @board_coord = game_data.board_coord
+    @white_pawn1 = game_data.white_pawn1
+    @white_pawn2 = game_data.white_pawn2
+    @white_pawn3 = game_data.white_pawn3
+    @white_pawn4 = game_data.white_pawn4
+    @white_pawn5 = game_data.white_pawn5
+    @white_pawn6 = game_data.white_pawn6
+    @white_pawn7 = game_data.white_pawn7
+    @white_pawn8 = game_data.white_pawn8
+    @white_rook1 = game_data.white_rook1
+    @white_rook2 = game_data.white_rook2
+    @white_knight1 = game_data.white_knight1
+    @white_knight2 = game_data.white_knight2
+    @white_bishop1 = game_data.white_bishop1
+    @white_bishop2 = game_data.white_bishop2
+    @white_queen = game_data.white_queen
+    @white_king = game_data.white_king
+    @black_pawn1 = game_data.black_pawn1
+    @black_pawn2 = game_data.black_pawn2
+    @black_pawn3 = game_data.black_pawn3
+    @black_pawn4 = game_data.black_pawn4
+    @black_pawn5 = game_data.black_pawn5
+    @black_pawn6 = game_data.black_pawn6
+    @black_pawn7 = game_data.black_pawn7
+    @black_pawn8 = game_data.black_pawn8
+    @black_rook1 = game_data.black_rook1
+    @black_rook2 = game_data.black_rook2
+    @black_knight1 = game_data.black_knight1
+    @black_knight2 = game_data.black_knight2
+    @black_bishop1 = game_data.black_bishop1
+    @black_bishop2 = game_data.black_bishop2
+    @black_queen = game_data.black_queen
+    @black_king = game_data.black_king
+    @pieces = game_data.pieces
+    @dead_pieces = game_data.dead_pieces
+    @board_hash = game_data.board_hash
+    @total_move_count = game_data.total_move_count
   end
   
   def create_pieces
+    puts "creating pieces"
     @white_pawn1 = Pawn.new("white")
     @white_pawn2 = Pawn.new("white")
     @white_pawn3 = Pawn.new("white")
@@ -59,9 +113,11 @@ class Board
               @black_rook1, @black_rook2, @black_knight1, @black_knight2,
               @black_bishop1, @black_bishop2, @black_queen, @black_king]
     @dead_pieces = []
+    # @total_move_count = 1
   end
 
   def create_board_hash
+    puts "creating board hash"
     @board_hash = Hash.new
     @board_coord.each do |coord|
       @board_hash[coord] = nil
@@ -107,6 +163,7 @@ class Board
   end
 
   def ret_board_hash_icon(key)
+    puts "Key is #{key}"
     if @board_hash[key].nil?
       return " "
     else
