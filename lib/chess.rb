@@ -4,14 +4,20 @@ require_relative './board.rb'
 require_relative './pieces.rb'
 
 class Game
-  attr_accessor 
+  attr_accessor :board 
   
   def initialize
     @board = Board.new
-    @in_check = false
     @game_over = false
     turn_sequence
   end
+
+  # def update_hash(coord, piece)
+  #   bhk = @board.board_hash.key(piece)
+  #   @board.board_hash[bhk] = nil
+  #   @board.board_hash[coord] = piece
+  #   @board.display_board
+  # end
   
   def turn_sequence
     i = 1
@@ -33,7 +39,7 @@ class Game
     end
     @board.display_board
     if analyze_board_check(my_color, @board.board_hash) == true
-      if analyze_board_check_mate(my_color) == true
+      if analyze_board_check_mate(my_color, @board.board_hash) == true
         puts "CHECK MATE - #{opp_color} wins!"
         puts ""
       else
@@ -148,7 +154,7 @@ class Game
     test_hash[coord].move_count += 1
   end
 
-  def analyze_board_check(my_color, test_hash)
+  def analyze_board_check(my_color, test_hash, mute=false)
     # returns true if given color is in check
     if my_color == "black"
       opp_color = "white"
@@ -166,21 +172,59 @@ class Game
     end
     opp_pieces.each do |piece|
       if piece.valid_moves(test_hash.key(piece), test_hash.key(king), true, test_hash) == true
-        puts "#{my_color.upcase} King is in check!".red
-        puts ""
+        puts "#{my_color.upcase} King is in check!".red unless mute == true
+        puts "" unless mute == true
         return true
       end
     end
     return false
   end
 
-  def analyze_board_check_mate(my_color)
+  def analyze_board_check_mate(my_color, test_hash)
+    # returns true if given color is in check mate
     if my_color == "black"
       opp_color = "white"
     elsif my_color == "white"
       opp_color = "black"
     end
-    
+    coordinates_possible_moves = []
+    @board.board_coord.each do |coord|
+      if @board.board_hash[coord].nil? || @board.board_hash[coord].color == opp_color
+        coordinates_possible_moves.push(coord)
+      end
+    end
+    my_pieces_coord = []
+    @board.pieces.each do |piece|
+      if piece.color == my_color && !test_hash.key(piece).nil?
+        my_pieces_coord.push(test_hash.key(piece))
+      end
+    end
+    my_pieces_coord.each do |cur_coord|
+      coordinates_possible_moves.each do |new_coord|
+        @board.copy_board_hash
+        temp_board_hash = @board.temp_board_hash
+        case
+        when color_match?(my_color, temp_board_hash, new_coord) == false
+          if temp_board_hash[cur_coord].valid_moves(cur_coord, new_coord, true, temp_board_hash) == true
+            @board.attack_piece(cur_coord, new_coord, temp_board_hash, @board.temp_dead_pieces, @board.temp_active_pieces)
+            if analyze_board_check(my_color, temp_board_hash, true) == true
+            else
+              return false
+            end
+          end
+        when space_empty?(temp_board_hash, new_coord) == true
+          if temp_board_hash[cur_coord].valid_moves(cur_coord, new_coord, false, temp_board_hash) == true
+            @board.move_piece(cur_coord, new_coord, temp_board_hash)
+            if analyze_board_check(my_color, temp_board_hash, true) == true
+            else
+              return false
+            end
+          end
+        end
+      end
+    end
+    @game_over = true
+    return true
   end
    
 end

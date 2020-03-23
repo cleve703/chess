@@ -1,6 +1,6 @@
 class Board
   attr_accessor :board_hash, :board_coord, :temp_board_hash
-  attr_reader :black_king, :white_king, :pieces, :temp_dead_pieces, :dead_pieces, :temp_active_pieces
+  attr_reader :black_king, :white_king, :pieces, :temp_dead_pieces, :dead_pieces, :temp_active_pieces, :white_rook1, :white_rook2, :white_bishop1, :white_bishop2
   
   def initialize
     @board_coord = []
@@ -148,6 +148,12 @@ class Board
   
   def move_piece(cur_coord, new_coord, input_hash)
     piece = input_hash[cur_coord]
+    input_hash[cur_coord] = nil
+    input_hash[new_coord] = piece
+  end
+
+  def update_hash(piece, new_coord, input_hash)
+    cur_coord = input_hash.key(piece)
     input_hash[cur_coord] = nil
     input_hash[new_coord] = piece
   end
