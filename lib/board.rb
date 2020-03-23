@@ -1,14 +1,14 @@
 class Board
   attr_accessor :board_hash, :board_coord, :temp_board_hash
-  attr_reader :pieces, :temp_dead_pieces, :dead_pieces, :temp_active_pieces, 
-              :white_rook1, :white_rook2, :white_bishop1, :white_bishop2,
-              :white_knight1, :white_knight2, 
-              :white_pawn1, :white_pawn2, :white_pawn3, :white_pawn4, :white_pawn5,
-              :white_pawn6, :white_pawn7, :white_pawn8, :white_queen, :white_king, 
-              :black_king, :black_bishop1, :black_bishop2, :black_knight1, :black_knight2,
-              :black_rook1, :black_rook2, :black_queen,
-              :black_pawn1, :black_pawn2, :black_pawn3, :black_pawn4,
-              :black_pawn5, :black_pawn6, :black_pawn7, :black_pawn8,
+    attr_reader :pieces, :temp_dead_pieces, :dead_pieces, :temp_active_pieces, :total_move_count, 
+                :white_rook1, :white_rook2, :white_bishop1, :white_bishop2,
+                :white_knight1, :white_knight2, 
+                :white_pawn1, :white_pawn2, :white_pawn3, :white_pawn4, :white_pawn5,
+                :white_pawn6, :white_pawn7, :white_pawn8, :white_queen, :white_king, 
+                :black_king, :black_bishop1, :black_bishop2, :black_knight1, :black_knight2,
+                :black_rook1, :black_rook2, :black_queen,
+                :black_pawn1, :black_pawn2, :black_pawn3, :black_pawn4,
+                :black_pawn5, :black_pawn6, :black_pawn7, :black_pawn8
   
   def initialize(saved_game=false, game_data=false)
     if saved_game == false
@@ -71,7 +71,6 @@ class Board
   end
   
   def create_pieces
-    puts "creating pieces"
     @white_pawn1 = Pawn.new("white")
     @white_pawn2 = Pawn.new("white")
     @white_pawn3 = Pawn.new("white")
@@ -163,7 +162,6 @@ class Board
   end
 
   def ret_board_hash_icon(key)
-    puts "Key is #{key}"
     if @board_hash[key].nil?
       return " "
     else

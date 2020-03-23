@@ -8,12 +8,11 @@ class Game
       turn_sequence
     else
       @board = Board.new(true, game_data)
-      turn_sequence(game_data.total_move_count)
+      turn_sequence(game_data.total_move_count.to_i)
     end
   end
 
-  def turn_sequence
-    i = 1
+  def turn_sequence(i=1)
     while @game_over == false
       if i.even?
         turn('black')
