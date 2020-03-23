@@ -12,13 +12,6 @@ class Game
     turn_sequence
   end
 
-  # def update_hash(coord, piece)
-  #   bhk = @board.board_hash.key(piece)
-  #   @board.board_hash[bhk] = nil
-  #   @board.board_hash[coord] = piece
-  #   @board.display_board
-  # end
-  
   def turn_sequence
     i = 1
     while @game_over == false
